@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag_app
+    restart: always
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    networks:
+      - rag_network
+    depends_on:
+      - postgres
+
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: pgai_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pgai_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - rag_network
+
+volumes:
+  postgres_data:
+
+networks:
+  rag_network:
+    driver: bridge

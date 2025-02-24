@@ -6,6 +6,7 @@ import concurrent
 import psycopg2
 import requests
 import streamlit as st
+from dotenv import load_dotenv  # <-- Added dotenv import
 
 from llama_index.core import Document
 from llama_index.embeddings.ollama import OllamaEmbedding
@@ -19,6 +20,9 @@ from llama_index.core.node_parser import (
 
 from ollama import Client
 from youtube_transcript_api import YouTubeTranscriptApi
+
+# Load environment variables from .env file
+load_dotenv()  # <-- Added dotenv loading
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -93,12 +97,13 @@ class PGDatabase:
     def __init__(
         self,
         table_name,
-        db_url,
+        db_url=None,  # <-- Default to None so it can read from os.getenv
         ollama=None,
         ollama_host=None,
         openai_key=None,
         rag=None,
     ):
+        self.db_url = db_url or os.getenv("PGVECTOR_DB_URL")  # <-- Read from .env
         self.conn = self.connect_db(db_url)
         self.table_name = table_name
         self.embedding_table_name = f"embedding_{table_name}"
@@ -394,6 +399,9 @@ class ChatApp:
 
         self.llm_choice = st.sidebar.selectbox("LLM Provider", ["OLLAMA", "OPENAI"])
 
+        # Default OLLAMA host from .env
+        default_ollama_host = os.getenv("OLLAMA_HOST", "")  # Fallback to empty string if not set
+
         if self.llm_choice != "OPENAI":
             st.session_state.is_use_pgai = st.sidebar.selectbox(
                 "Use PGVector Vectorizer?",
@@ -431,7 +439,7 @@ class ChatApp:
         if self.llm_choice == "OPENAI":
             self.openai_key = st.sidebar.text_input("OpenAI Key", type="password")
         elif self.llm_choice == "OLLAMA":
-            self.ollama_host = st.sidebar.text_input("OLLAMA Host URL", type="password")
+            self.ollama_host = st.sidebar.text_input("OLLAMA Host URL", value=default_ollama_host)  #, type="password")
             self.ollama = Client(host=self.ollama_host)
             st.session_state.ollama_host = self.ollama_host
             self.initialize_chunking_settings()

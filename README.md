@@ -60,3 +60,9 @@ pip install psycopg2-binary
 sudo OLLAMA_HOST="0.0.0.0" ollama serve
 
 
+## Tools Used
+- Timescale Cloud: Database hosting
+- pgVector: For efficient data storage and retrieval of embeddings
+- pgai Vectorizer: For enhanced text processing and chunking within the database
+- Ollama: For generating embeddings and handling response generation
+- Streamlit: Used for building the user interface
