@@ -3,6 +3,8 @@
 ## Overview
 RAG (Retrieval-Augmented Generation) is a comprehensive UI application designed to explore the capabilities of RAG models. It supports various interaction modes and is built for the Dev.to hackathon.
 
+https://github.com/timescale/pgai/blob/main/docs/install/docker.md
+
 ## Features
 - **Chat with Website**: Enter a website URL  or youtube url to chat with its content.
 - **Chat with File**: Upload a text or markdown file to initiate a conversation based on its content.

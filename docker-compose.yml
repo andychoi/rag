@@ -1,4 +1,4 @@
-version: '3.8'
+name: pgai_rag_demo
 
 services:
   app:
@@ -17,7 +17,9 @@ services:
       - postgres
 
   postgres:
-    image: ankane/pgvector:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.pg
     container_name: pgai_postgres
     restart: always
     environment:
@@ -29,8 +31,17 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
+    command: [ "-c", "ai.ollama_host=http://ollama:11434" ]
     networks:
       - rag_network
+
+  vectorizer-worker:
+    image: timescale/pgai-vectorizer-worker:latest
+    container_name: pgai_vectorizer_worker
+    environment:
+      PGAI_VECTORIZER_WORKER_DB_URL: postgres://postgres:postgres@db:5432/postgres
+      OLLAMA_HOST: http://ollama:11434
+    command: [ "--poll-interval", "5s", "--log-level", "DEBUG" ]
 
 volumes:
   postgres_data:
