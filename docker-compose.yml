@@ -36,7 +36,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
-    command: [ "-c", "ai.ollama_host=http://localhost:11434" ]
+    command: [ "-c", "ai.ollama_host=http://host.docker.internal:11434" ]
     networks:
       - rag_network
 
@@ -44,9 +44,14 @@ services:
     image: timescale/pgai-vectorizer-worker:latest
     container_name: pgai_vectorizer_worker
     environment:
-      PGAI_VECTORIZER_WORKER_DB_URL: postgres://postgres:postgres@db:5432/postgres
-      OLLAMA_HOST: http://host.docker.internal:11434
+      # Update the DB URL to match the postgres service credentials and hostname.
+      PGAI_VECTORIZER_WORKER_DB_URL: "postgres://postgres:password@postgres:5432/pgai_db"
+      OLLAMA_HOST: "http://host.docker.internal:11434"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  
     command: [ "--poll-interval", "5s", "--log-level", "DEBUG" ]
+    networks:
+      - rag_network
 
 volumes:
   postgres_data:

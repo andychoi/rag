@@ -35,6 +35,10 @@ https://github.com/timescale/pgai/blob/main/docs/install/docker.md
 - **OLLAMA Host URL**: Provide the OLLAMA host URL if using OLLAMA.
 - **PGVector DB URL**: Enter the PostgreSQL database URL for PGVector.
 
+## Preparation
+- ollama pull nomic-embed-text
+- ollama pull tinyllama
+
 ## Usage
 - **Chat with Website**: Select "Chat with Website" mode, input a website URL, and start chatting.
 - **Chat with File**: Select "Chat with File" mode, upload a file, and begin the conversation.

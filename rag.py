@@ -136,6 +136,8 @@ class PGDatabase:
                 self.conn.commit()
             logger.info("Ollama configuration set successfully")
         except psycopg2.DatabaseError as e:
+            # Rollback the current transaction to clear the aborted state.
+            self.conn.rollback()            
             logger.error(f"Error setting Ollama configuration: {e}")
 
     def create_table(self):
@@ -489,7 +491,7 @@ class ChatApp:
     def get_completion_model(self):
         if self.llm_choice == "OLLAMA":
             return st.sidebar.selectbox(
-                "Completion Model", ["tinyllama", "llama3", "mistral", "phi3.5"]
+                "Completion Model", ["tinyllama", "llama3", "llama3.3", "mistral", "phi3.5"]
             )
 
     def initialize_chunking_settings(self):
