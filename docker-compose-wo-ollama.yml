@@ -6,9 +6,11 @@ services:
       context: .
       dockerfile: Dockerfile.app
     container_name: rag_app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"    
     environment:
-      # Update the host to the service name "ollama" on the correct port.
-      OLLAMA_HOST: "http://ollama:11434"
+      # Ensure your app uses http://host.docker.internal:11434 for Ollama
+      OLLAMA_HOST: "http://host.docker.internal:11434"      
     restart: always
     ports:
       - "8501:8501"
@@ -18,7 +20,6 @@ services:
       - rag_network
     depends_on:
       - postgres
-      - ollama
 
   postgres:
     build:
@@ -35,28 +36,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
-    command: [ "-c", "ai.ollama_host=http://ollama:11434" ]
+    command: [ "-c", "ai.ollama_host=http://host.docker.internal:11434" ]
     networks:
       - rag_network
 
-  # https://github.com/timescale/pgai/blob/main/docs/vectorizer/worker.md#install-vectorizer-worker-as-a-python-package
   vectorizer-worker:
     image: timescale/pgai-vectorizer-worker:latest
     container_name: pgai_vectorizer_worker
     environment:
       # Update the DB URL to match the postgres service credentials and hostname.
       PGAI_VECTORIZER_WORKER_DB_URL: "postgres://postgres:password@postgres:5432/pgai_db"
-      OLLAMA_HOST: "http://ollama:11434"
+      OLLAMA_HOST: "http://host.docker.internal:11434"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  
     command: [ "--poll-interval", "5s", "--log-level", "DEBUG" ]
-    networks:
-      - rag_network
-
-  ollama:
-    image: ollama/ollama:latest  # Replace with the correct image reference if different.
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    # If you need to pass additional configuration to Ollama, add environment variables or volumes here.
     networks:
       - rag_network
 

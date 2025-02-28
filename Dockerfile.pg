@@ -1,48 +1,52 @@
-# Base image: PostgreSQL 16, Python 3.10
-# FROM postgres:16
-# Use the prebuilt pgvector image (which includes pgvector) with PostgreSQL 16 as the base image.
-FROM pgvector/pgvector:pg16
+# Build stage
+FROM postgres:17 AS builder
 
-# Install required system packages:
-# - build-essential: provides compilers and build tools
-# - git: to clone repositories
-# - python3 and python3-pip: for Python dependencies
-# - postgresql-server-dev-16: PostgreSQL extension development headers
-# - postgresql-plpython3-16: Enables PL/Python support (plpython3u)
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     git \
     python3 \
     python3-pip \
-    postgresql-server-dev-16 \
-    postgresql-plpython3-16 \
+    postgresql-server-dev-17 \
+    postgresql-plpython3-17 \
   && rm -rf /var/lib/apt/lists/*
 
-# Install pgvector from source
-# RUN git clone https://github.com/pgvector/pgvector.git /tmp/pgvector && \
-#     cd /tmp/pgvector && \
-#     make && \
-#     make install && \
-#     rm -rf /tmp/pgvector
+# Build and install pgvector from source
+RUN git clone https://github.com/pgvector/pgvector.git /tmp/pgvector && \
+    cd /tmp/pgvector && \
+    make && \
+    make install && \
+    rm -rf /tmp/pgvector
 
-# Clone the pgai repository at the tagged release "extension-0.8.0"
-RUN git clone https://github.com/timescale/pgai.git --branch extension-0.8.0 /tmp/pgai
+# Clone, build, and install the pgai extension from source
+RUN git clone https://github.com/timescale/pgai.git --branch extension-0.8.0 /tmp/pgai && \
+    cd /tmp/pgai && \
+    python3 projects/extension/build.py install && \
+    rm -rf /tmp/pgai
 
-# Set working directory to the cloned pgai repository
-WORKDIR /tmp/pgai
+# Optional diagnostics to display where PostgreSQL installs its files.
+# These commands output the library and shared directories (used for extensions)
+RUN echo "Library directory:" && pg_config --libdir
+RUN echo "Shared directory:" && pg_config --sharedir
+RUN ls -l $(pg_config --sharedir)/extension
+RUN ls -l $(pg_config --libdir)
+#9 [postgres builder 5/8] RUN echo "Library directory:" && pg_config --libdir
+#9 0.245 /usr/lib/aarch64-linux-gnu
+#10 [postgres builder 6/8] RUN echo "Shared directory:" && pg_config --sharedir
+#10 0.100 /usr/share/postgresql/17
 
-# Install the pgai extension. The installation script uses the system paths,
-# so no sudo is needed since we're root.
-RUN python3 projects/extension/build.py install
+# Final stage: runtime image
+FROM postgres:17
 
-# Clean up by removing the pgai source directory
-RUN rm -rf /tmp/pgai
+# Copy installed extension libraries and SQL files from the build stage.
+# Adjust these paths based on the output of pg_config in the builder stage.
+COPY --from=builder /usr/lib/postgresql /usr/lib/postgresql
+COPY --from=builder /usr/share/postgresql/17/extension /usr/share/postgresql/17/extension
 
-# Copy init.sql to enable extensions
+
+
+# (Optional) Copy initialization SQL scripts to automatically enable extensions.
 COPY init-scripts/init.sql /docker-entrypoint-initdb.d/
 
-# Expose PostgreSQL port
 EXPOSE 5432
-
-# Default command
 CMD ["postgres"]
