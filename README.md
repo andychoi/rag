@@ -3,8 +3,15 @@
 ## Overview
 RAG (Retrieval-Augmented Generation) is a comprehensive UI application designed to explore the capabilities of RAG models. It supports various interaction modes and is built for the Dev.to hackathon.
 
+Article: https://medium.com/@programmerraja/a-flexible-ai-powered-chat-app-for-websites-youtube-files-and-dev-to-articles-edb66785e9fa
+https://github.com/pgvector/pgvector#hnsw
+
 https://github.com/timescale/pgai/blob/main/docs/install/docker.md
 https://github.com/timescale/pgai/blob/main/docs/vectorizer/worker.md#install-vectorizer-worker-as-a-python-package
+
+# pgai python package
+https://pypi.org/project/pgai/
+
 
 ## Features
 - **Chat with Website**: Enter a website URL  or youtube url to chat with its content.
