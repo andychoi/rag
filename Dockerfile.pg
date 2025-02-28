@@ -1,4 +1,4 @@
-# Base image: PostgreSQL 16
+# Base image: PostgreSQL 16, Python 3.10
 # FROM postgres:16
 # Use the prebuilt pgvector image (which includes pgvector) with PostgreSQL 16 as the base image.
 FROM pgvector/pgvector:pg16

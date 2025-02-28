@@ -491,7 +491,7 @@ class ChatApp:
     def get_completion_model(self):
         if self.llm_choice == "OLLAMA":
             return st.sidebar.selectbox(
-                "Completion Model", ["tinyllama", "llama3", "llama3.3", "mistral", "phi3.5"]
+                "Completion Model", ["tinyllama", "llama3", "llama3.3:70b-instruct-q4_0", "mistral", "phi3.5"]
             )
 
     def initialize_chunking_settings(self):
